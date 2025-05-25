@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Gastos de Viaje PWA</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0EA5E9"/>
+</head>
+<body>
+
+    <div id="app" class="app-container">
+
+        <header class="app-header">
+            <h1><i class="fas fa-plane-departure"></i> Mis Gastos de Viaje</h1>
+            <nav id="breadcrumbs" class="breadcrumbs"></nav>
+        </header>
+
+        <div id="message-area" class="message-area"></div>
+
+        <section id="budgets-list-view" class="view active">
+            <div class="view-header">
+                <h2>Mis Presupuestos</h2>
+                <button id="add-budget-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Presupuesto
+                </button>
+            </div>
+            <div id="budgets-container" class="list-container">
+                <p class="empty-list-message">No hay presupuestos todavía. ¡Crea uno!</p>
+            </div>
+        </section>
+
+        <section id="budget-form-view" class="view">
+            <h2 id="budget-form-title" class="form-title">Crear Nuevo Presupuesto</h2>
+            <form id="budget-form" class="form-card">
+                <input type="hidden" id="budget-id">
+                <div>
+                    <label for="budget-name">Nombre del Presupuesto:</label>
+                    <input type="text" id="budget-name" required>
+                </div>
+                <div>
+                    <label for="budget-currency">Moneda (ej: USD, EUR, JPY):</label>
+                    <input type="text" id="budget-currency" required placeholder="JPY">
+                </div>
+                <div>
+                    <label for="budget-start-date">Fecha de Inicio:</label>
+                    <input type="date" id="budget-start-date" required>
+                </div>
+                <div>
+                    <label for="budget-end-date">Fecha de Fin:</label>
+                    <input type="date" id="budget-end-date" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save"></i> Guardar Presupuesto
+                    </button>
+                    <button type="button" id="cancel-budget-form" class="btn btn-cancel">Cancelar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="budget-detail-view" class="view">
+            <div class="card budget-summary-card">
+                <div class="card-header">
+                    <h2 id="budget-detail-name"></h2>
+                    <button id="edit-current-budget-btn" class="btn-icon btn-edit-budget"><i class="fas fa-edit"></i> Editar Presupuesto</button>
+                </div>
+                <p class="budget-meta">
+                    <span id="budget-detail-dates"></span> | Moneda: <span id="budget-detail-currency"></span>
+                </p>
+                <div class="budget-totals-grid">
+                    <p>Presupuesto Total: <strong id="budget-detail-total" class="total-amount">0</strong></p>
+                    <p>Saldo Actual: <strong id="budget-detail-balance" class="balance-amount">0</strong></p>
+                </div>
+                 <button id="delete-current-budget-btn" class="btn-icon btn-delete-budget"><i class="fas fa-trash"></i> Eliminar Presupuesto Completo</button>
+            </div>
+
+            <div class="view-header">
+                <h3>Categorías de Gasto</h3>
+                <button id="add-category-btn" class="btn btn-primary btn-small">
+                    <i class="fas fa-plus"></i> Nueva Categoría
+                </button>
+            </div>
+            <div id="categories-container" class="list-container">
+            </div>
+            <button id="back-to-budgets-list" class="btn btn-secondary btn-back">
+                <i class="fas fa-arrow-left"></i> Volver a Presupuestos
+            </button>
+        </section>
+
+        <section id="category-form-view" class="view">
+            <h2 id="category-form-title" class="form-title">Añadir Nueva Categoría</h2>
+            <form id="category-form" class="form-card">
+                <input type="hidden" id="category-id">
+                <input type="hidden" id="category-budget-id">
+                <div>
+                    <label for="category-name">Nombre de la Categoría:</label>
+                    <input type="text" id="category-name" required>
+                </div>
+                <div>
+                    <label for="category-budgeted-amount">Monto Asignado (<span id="form-category-currency"></span>):</label>
+                    <input type="number" id="category-budgeted-amount" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save"></i> Guardar Categoría
+                    </button>
+                    <button type="button" id="cancel-category-form" class="btn btn-cancel">Cancelar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="category-detail-view" class="view">
+            <div class="card category-summary-card">
+                 <div class="card-header">
+                    <h2 id="category-detail-name"></h2>
+                    <button id="edit-current-category-btn" class="btn-icon btn-edit-category"><i class="fas fa-edit"></i> Editar Categoría</button>
+                </div>
+                <p class="category-meta">Presupuesto: <span id="category-detail-budget-name"></span></p>
+                <div class="category-stats-grid">
+                    <p>Asignado: <strong id="category-detail-budgeted" class="total-amount">0</strong></p>
+                    <p>Saldo: <strong id="category-detail-balance" class="balance-amount">0</strong></p>
+                    <p>Gasto Diario Sugerido: <strong id="category-detail-daily-allowance" class="daily-allowance-amount">0</strong></p>
+                </div>
+                <button id="delete-current-category-btn" class="btn-icon btn-delete-category"><i class="fas fa-trash"></i> Eliminar Categoría</button>
+            </div>
+
+            <div class="view-header">
+                <h3>Gastos Registrados</h3>
+                <button id="add-expense-btn" class="btn btn-primary btn-small">
+                    <i class="fas fa-plus"></i> Nuevo Gasto
+                </button>
+            </div>
+            <div id="expenses-container" class="list-container">
+            </div>
+            <button id="back-to-budget-detail" class="btn btn-secondary btn-back">
+                <i class="fas fa-arrow-left"></i> Volver a Categorías
+            </button>
+        </section>
+
+        <section id="expense-form-view" class="view">
+            <h2 id="expense-form-title" class="form-title">Registrar Nuevo Gasto</h2>
+             <div class="expense-form-summary">
+                <p>Presupuesto: <strong id="form-expense-budget-name"></strong> | Saldo General: <strong id="form-expense-budget-balance"></strong></p>
+                <p>Categoría: <strong id="form-expense-category-name"></strong> | Saldo Categoría: <strong id="form-expense-category-balance"></strong></p>
+                <p>Total Gasto Actual (provisional): <strong id="form-expense-current-total-provisional" class="provisional-total-amount">0.00</strong></p>
+            </div>
+            <form id="expense-form" class="form-card">
+                <input type="hidden" id="expense-id">
+                <input type="hidden" id="expense-category-id">
+                <input type="hidden" id="expense-budget-id">
+                <div>
+                    <label for="expense-name">Descripción del Gasto:</label>
+                    <input type="text" id="expense-name" required>
+                </div>
+                <div>
+                    <label for="expense-date">Fecha del Gasto:</label>
+                    <input type="datetime-local" id="expense-date" required>
+                </div>
+
+                <h4 class="items-title">Ítems del Gasto:</h4>
+                <div id="expense-items-container" class="expense-items-list">
+                </div>
+                <button type="button" id="add-expense-item-btn" class="btn btn-accent btn-small">
+                    <i class="fas fa-plus"></i> Añadir Ítem
+                </button>
+
+                <div class="expense-total-display">
+                    Total del Gasto: <span id="expense-form-total" class="final-total-amount">0.00</span> <span id="form-expense-currency-symbol"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save"></i> Guardar Gasto
+                    </button>
+                    <button type="button" id="cancel-expense-form" class="btn btn-cancel">Cancelar</button>
+                </div>
+            </form>
+        </section>
+
+        <div id="confirmation-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="modal-title" class="modal-title-text">Confirmar Acción</h3>
+                <p id="modal-message" class="modal-message-text">¿Estás seguro?</p>
+                <div class="modal-actions">
+                    <button id="modal-confirm-btn" class="btn btn-danger">Confirmar</button>
+                    <button id="modal-cancel-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js" defer></script>
+</body>
+</html>
