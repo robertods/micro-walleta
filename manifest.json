@@ -22,14 +22,14 @@
     ],
     "screenshots": [
         {
-            "src": "/images/screenshot-desktop-1.png",
+            "src": "images/screenshot-desktop-1.png",
             "sizes": "1280x800",
             "type": "image/png",
             "form_factor": "wide",
             "label": "Vista de escritorio principal"
         },
         {
-            "src": "/images/screenshot-mobile-1.png",
+            "src": "images/screenshot-mobile-1.png",
             "sizes": "1080x2340",
             "type": "image/png",
             "label": "Vista móvil principal"
