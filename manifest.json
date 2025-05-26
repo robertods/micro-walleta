@@ -2,7 +2,7 @@
     "name": "Demo-Walleta",
     "short_name": "Walleta",
     "description": "Una PWA para llevar el control de tus gastos.",
-    "start_url": "/",
+    "start_url": "/micro-walleta/",
     "display": "standalone",
     "background_color": "#F1F5F9",
     "theme_color": "#0EA5E9",
